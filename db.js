@@ -51,4 +51,10 @@ if (process.env.DB_MOCK === 'true') {
     };
 }
 
+// Export mock data getter for debugging
+db.getMockData = () => {
+    if (process.env.DB_MOCK === 'true') return mockData;
+    return { error: 'Not in mock mode' };
+};
+
 module.exports = db;

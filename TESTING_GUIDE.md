@@ -45,19 +45,19 @@ Open a **new** terminal tab (keep the server running in the first one) and use t
 
 **Create a Wallet:**
 ```powershell
-curl -X POST http://localhost:3000/api/wallets/create -H "Content-Type: application/json" -d "{\"label\": \"My Test\", \"blockchain\": \"solana\"}"
+Invoke-RestMethod -Uri "http://localhost:3000/api/wallets/create" -Method Post -ContentType "application/json" -Body '{"label": "My Test", "blockchain": "solana"}'
 ```
 *Copy the `wallet_id` from the output.*
 
 **Sign a Transaction:**
 Replace `<YOUR_WALLET_ID>` with the ID you just got.
 ```powershell
-curl -X POST http://localhost:3000/api/wallets/sign -H "Content-Type: application/json" -H "x-api-key: mywins" -d "{\"wallet_id\": \"<YOUR_WALLET_ID>\", \"transaction\": \"pay 100\"}"
+Invoke-RestMethod -Uri "http://localhost:3000/api/wallets/sign" -Method Post -ContentType "application/json" -Headers @{"x-api-key"="mywins"} -Body '{"wallet_id": "<YOUR_WALLET_ID>", "transaction": "pay 100"}'
 ```
 
 **Check Monitoring Logs:**
 ```powershell
-curl http://localhost:3000/api/monitoring
+Invoke-RestMethod -Uri "http://localhost:3000/api/monitoring" -Method Get
 ```
 
 ## 5. How the Mock DB Works
