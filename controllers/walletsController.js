@@ -33,7 +33,7 @@ const createWallet = async (req, res) => {
 
     } catch (error) {
         console.error('Error creating wallet:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Internal Server Error', details: error.message });
     }
 };
 

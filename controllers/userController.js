@@ -29,7 +29,7 @@ const registerUser = async (req, res) => {
         console.error('Registration Error:', err);
         if (err.constraint === 'users_email_key') return res.status(409).json({ error: 'Email already exists' });
         if (err.constraint === 'users_username_key') return res.status(409).json({ error: 'Username already exists' });
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Internal Server Error', details: err.message });
     }
 };
 

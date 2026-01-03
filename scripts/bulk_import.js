@@ -68,19 +68,15 @@ async function runBulkImport() {
     }
     console.log(`✅ Found ${walletsToCreate.length} wallets to create.`);
 
-    console.log('\n2. Authenticating...');
-    let sessionKey = '';
-    try {
-        const authData = await makeRequest('/get-session-key', 'POST', {
-            admin_secret: process.env.ADMIN_SECRET
-        });
-        sessionKey = authData.session_key;
-        console.log('✅ Authentication Successful (Session Key Acquired).');
-    } catch (err) {
-        console.error('❌ Authentication Failed:', err);
-        console.error('Check your ADMIN_SECRET in .env');
+    console.log('\n2. Authentication...');
+    // Expect API Key as first argument
+    const apiKey = process.argv[2];
+    if (!apiKey) {
+        console.error('❌ Error: Please provide your API Key as an argument.');
+        console.error('   Usage: node scripts/bulk_import.js <YOUR_API_KEY>');
         process.exit(1);
     }
+    console.log('✅ Using provided API Key.');
 
     console.log('\n3. Creating Wallets...');
     let successCount = 0;
@@ -88,7 +84,7 @@ async function runBulkImport() {
     for (const w of walletsToCreate) {
         try {
             const result = await makeRequest('/wallets/create', 'POST', w, {
-                'x-session-key': sessionKey
+                'x-api-key': apiKey
             });
             console.log(`   [SUCCESS] Created "${w.label}": ${result.wallet_id}`);
             successCount++;
