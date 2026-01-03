@@ -26,7 +26,7 @@ if (process.env.DB_MOCK === 'true') {
                 mockData.wallets.push(wallet);
                 return { rows: [wallet] };
             }
-            if (text.includes('SELECT * FROM wallets')) {
+            if (text.includes('SELECT') && text.includes('FROM wallets')) {
                 const id = params[0];
                 const wallet = mockData.wallets.find(w => w.id === id);
                 return { rows: wallet ? [wallet] : [] };

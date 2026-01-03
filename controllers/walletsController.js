@@ -6,15 +6,14 @@ const crypto = require('crypto');
 
 const createWallet = async (req, res) => {
     try {
-        const { label = 'My Wallet', blockchain = 'ZigChain' } = req.body;
+        const { label, blockchain, wallet_address, private_key } = req.body;
 
-        // Generate mock wallet details
-        const walletAddress = `0x${crypto.randomBytes(20).toString('hex')}`;
-        const privateKey = crypto.randomBytes(32).toString('hex'); // Generate a random private key
+        if (!label || !blockchain || !wallet_address || !private_key) {
+            return res.status(400).json({ error: 'Missing required fields: label, blockchain, wallet_address, private_key' });
+        }
 
-        // Encrypt private key
         // encrypt returns { encryptedResult, ivResult } (base64 and hex strings)
-        const { encryptedResult, ivResult } = encrypt(privateKey);
+        const { encryptedResult, ivResult } = encrypt(private_key);
 
         const walletId = uuidv4();
 
@@ -24,7 +23,7 @@ const createWallet = async (req, res) => {
             RETURNING id, wallet_address
         `;
 
-        const values = [walletId, label, blockchain, walletAddress, encryptedResult, ivResult];
+        const values = [walletId, label, blockchain, wallet_address, encryptedResult, ivResult];
         const result = await db.query(query, values);
 
         res.status(201).json({
@@ -111,10 +110,34 @@ const multisend = async (req, res) => {
     }
 };
 
+const getWallet = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ error: 'Missing wallet id' });
+        }
+
+        const query = 'SELECT id, label, blockchain, wallet_address, created_at, is_active FROM wallets WHERE id = $1';
+        const result = await db.query(query, [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Wallet not found' });
+        }
+
+        res.json(result.rows[0]);
+
+    } catch (error) {
+        console.error('Error fetching wallet:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
 // crypto moved to top
 
 module.exports = {
     createWallet,
     sign,
-    multisend
+    multisend,
+    getWallet
 };

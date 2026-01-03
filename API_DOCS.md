@@ -1,91 +1,93 @@
 # Backend API Documentation
 
-**Base URL**: `http://localhost:3000` (or your production URL)
+**Base URL**: `http://localhost:3000`
 
-## Authentication
-Some endpoints require an API Key.
-- **Header Name**: `x-api-key`
-- **Value**: Ask backend team for the key (e.g., `mywins`).
+## 1. Authentication & Registration
+
+### registerUser
+Creates a new user account.
+- **Endpoint**: `POST /api/register`
+- **Body**:
+  ```json
+  {
+    "username": "jdoe",
+    "email": "jdoe@example.com"
+  }
+  ```
+- **Response**: User object.
+
+### generateApiKey
+Generates a persistent API Key.
+- **Prerequisite**: Email must be authorized in backend `.env`.
+- **Endpoint**: `POST /api/generate-api-key`
+- **Body**:
+  ```json
+  {
+    "email": "jdoe@example.com",
+    "admin_secret": "your_super_admin_secret",
+    "duration": 86400 
+  }
+  ```
+  *(Duration is in seconds. Default: 3600)*
+- **Response**:
+  ```json
+  {
+    "api_key": "sk_live_...",
+    "expires_at": "2024-..."
+  }
+  ```
+  **Save this key.** You will need it for all wallet operations.
 
 ---
 
-## 1. Create Wallet
-Generates a new secure wallet.
+## 2. Wallet Operations
+**Auth Header Required**: `x-api-key: sk_live_...`
 
+### createWallet
+Securely imports/creates a wallet.
 - **Endpoint**: `POST /api/wallets/create`
-- **Auth**: None
-- **Request Body**:
+- **Body**:
   ```json
   {
-    "label": "User's Main Wallet",
-    "blockchain": "ethereum" 
+    "label": "My Wallet",
+    "blockchain": "ethereum",
+    "wallet_address": "0x123...",
+    "private_key": "your_private_key"
   }
   ```
-  *(Supported blockchains: ethereum, bitcoin, solana, etc.)*
+- **Response**: `{ "wallet_id": "uuid..." }`
 
-- **Success Response (201)**:
-  ```json
-  {
-    "wallet_id": "550e8400-e29b-41d4-a716-446655440000",
-    "wallet_address": "0x123abc..."
-  }
-  ```
-
----
-
-## 2. Sign Transaction
-Signs a transaction payload using the wallet's private key.
-
+### signTransaction
+Signs a transaction using the stored encrypted key.
 - **Endpoint**: `POST /api/wallets/sign`
-- **Auth**: Required (`x-api-key`)
-- **Request Body**:
+- **Body**:
   ```json
   {
-    "wallet_id": "550e8400-e29b-41d4-a716-446655440000",
-    "transaction": "raw_transaction_string_or_obj"
+    "wallet_id": "uuid...",
+    "transaction": "pay 100..."
   }
   ```
+- **Response**: `{ "signed_transaction": "0x..." }`
 
-- **Success Response (200)**:
-  ```json
-  {
-    "signed_transaction": "0xSIGNED_HASH..."
-  }
-  ```
-
----
-
-## 3. Multisend (Batch Sign)
-Signs multiple transactions at once (optimized).
-
+### multisend
+Signs multiple transactions.
 - **Endpoint**: `POST /api/wallets/multisend`
-- **Auth**: Required (`x-api-key`)
-- **Request Body**:
+- **Body**:
   ```json
   {
-    "wallet_id": "550e8400-e29b-41d4-a716-446655440000",
-    "transactions": [
-        "tx_payload_1",
-        "tx_payload_2"
-    ]
+    "wallet_id": "uuid...",
+    "transactions": ["tx1", "tx2"]
   }
   ```
 
-- **Success Response (200)**:
-  ```json
-  {
-    "signed_transactions": [
-        "0xSIGNED_HASH_1",
-        "0xSIGNED_HASH_2"
-    ]
-  }
-  ```
+### getWallet
+Fetch public details.
+- **Endpoint**: `GET /api/wallets/:id`
 
 ---
 
-## 4. Monitoring
-Get a history of API usage.
-
+## 3. Monitoring
+### getMonitoringLogs
+View recent request logs.
+- **Auth**: Required (`x-api-key`)
 - **Endpoint**: `GET /api/monitoring`
-- **Auth**: None (Public)
-- **Response**: Array of log objects.
